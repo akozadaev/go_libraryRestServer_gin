@@ -10,6 +10,11 @@ type Book struct {
 	Title  string  `json:"title"`
 	Author *Author `json:"author"`
 }
+type BookV1 struct {
+	Version string   `json:"version"`
+	Books   []Book   `json:"book"`
+	Errors  []string `json:"errors"`
+}
 
 type Author struct {
 	Firstname string `json:"firstname"`
@@ -30,7 +35,19 @@ func main() {
 	router.POST("/book", postBook)
 	router.PUT("/book/:id", updateBookByID)
 	router.DELETE("/book/:id", deleteBookByID)
+	v1 := router.Group("v1")
+	v1.Use()
+	{
+		v1.GET("books", getBooksV1)
+		v1.GET("book/:id", getBooksByID)
+	}
 	router.Run("localhost:8080")
+}
+
+func getBooksV1(ctx *gin.Context) {
+	var booksV1 = []BookV1{{Version: "v1", Books: books}}
+
+	ctx.IndentedJSON(http.StatusOK, booksV1)
 }
 
 func updateBookByID(ctx *gin.Context) {
